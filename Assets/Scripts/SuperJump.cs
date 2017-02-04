@@ -6,15 +6,23 @@ public class SuperJump : MonoBehaviour {
 
 	public SteamVR_TrackedObject left;
 	public SteamVR_TrackedObject right;
+    public SteamVR_TrackedObject head;
 	public float jump_threshold = 2f;
 	public float jump_strength = 5f;
+    public float horizontal_strength = 25f;
 
 	private ulong trigger = SteamVR_Controller.ButtonMask.Trigger;
 	private Rigidbody body;
+    private SteamVR_Controller.Device hmd;
+    private float height;
+
 
 	// Use this for initialization
 	void Start () {
 		body = GetComponent<Rigidbody> ();
+        hmd = SteamVR_Controller.Input((int)head.index);
+        height = hmd.transform.pos.y;
+        print(height);
 	}
 
 	// Called every fixed period
@@ -37,11 +45,19 @@ public class SuperJump : MonoBehaviour {
 		// Does the jump if appropriate
 		if (triggerPressed) {
 			// Check if our upwards velocity is above a certain threshold
-			Vector3 v = body.velocity;
-			if (Vector3.Dot (v, Vector3.up) > jump_threshold) {
-				// If so, perform a jump
-				Jump ();
-			}
+			Vector3 v = hmd.velocity;
+            //print(hmd.transform.pos.y + " " + height + " " + v.magnitude + " " + v.y);
+			if (v.magnitude > jump_threshold && v.y > 0 && hmd.transform.pos.y > height) {
+                print(v);
+                // If so, perform a jump
+                // Jump ();
+                // body.velocity = jump_strength * v.y * Vector3.up;
+                Vector3 tmp = new Vector3(horizontal_strength * v.x, jump_strength * v.y, horizontal_strength * v.z);
+                if (tmp.sqrMagnitude > body.velocity.sqrMagnitude)
+                {
+                    body.velocity = tmp;
+                }
+            }
 		}
 	}
 
